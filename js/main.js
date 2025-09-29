@@ -34,9 +34,14 @@ class ChartApp {
         if (!file) return;
 
         try {
-            const text = await this.readFileAsText(file);
-            const data = CSVParser.parse(text);
-            this.processData(data);
+            // 檢查檔案類型
+            if (file.name.toLowerCase().endsWith('.csv')) {
+                const text = await this.readFileAsText(file);
+                const data = CSVParser.parse(text);
+                this.processData(data);
+            } else {
+                throw new Error('不支援的檔案格式。請上傳 CSV 檔案。');
+            }
         } catch (error) {
             this.showError('檔案讀取錯誤: ' + error.message);
         }
@@ -52,7 +57,13 @@ class ChartApp {
     }
 
     loadSampleData() {
-        const sampleData = CSVParser.generateSampleData();
+        const sampleDataWithNames = CSVParser.generateSampleData();
+        // 移除姓名欄位，只保留長度、高度、大小
+        const sampleData = sampleDataWithNames.map(row => ({
+            length: row.length,
+            height: row.height,
+            size: row.size
+        }));
         this.processData(sampleData);
     }
 

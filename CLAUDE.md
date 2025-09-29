@@ -17,10 +17,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 數據格式
 
-應用程式預期 CSV 數據包含正好 3 個欄位：
-- 欄位 1：長度 (1-4)
-- 欄位 2：高度 (1-100)
-- 欄位 3：大小 (1-127)
+應用程式預期 CSV 數據包含 4 個欄位：
+- 欄位 1：姓名 (string) - 保留欄位，不參與視覺化
+- 欄位 2：長度 (1-4)
+- 欄位 3：高度 (1-100)
+- 欄位 4：大小 (1-127)
 
 數據視覺化為彩色線段：
 - X 軸代表累積長度
@@ -40,12 +41,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `index.html`：主要進入點，包含 UI 版面配置
 - `css/style.css`：介面樣式
 - `js/`：所有 JavaScript 模組（在 HTML 中按特定順序載入）
-- `sample_data.csv`：測試用範例資料集
+- `sample_data.csv`：測試用範例 CSV 檔案（包含姓名欄位）
+
+**CSV 格式要求：**
+- 支援標準 CSV 格式
+- 第一欄為姓名，但不參與視覺化計算
+- 自動跳過姓名欄位，僅處理數值欄位
+- 需包含標題行：姓名,長度,高度,大小
 
 **測試方法：**
 - 載入應用程式並使用「載入範例資料」按鈕測試
-- 測試使用正確格式檔案的 CSV 檔案上傳功能
+- 測試使用正確格式的 CSV 檔案上傳功能
 - 驗證數據驗證功能可正確處理無效數據
+- 測試 PNG 和 SVG 匯出功能
 
 ## 部署
 
