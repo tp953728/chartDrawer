@@ -10,6 +10,8 @@ class ChartApp {
     initEventListeners() {
         const csvFileInput = document.getElementById('csvFile');
         const loadSampleButton = document.getElementById('loadSample');
+        const exportPNGButton = document.getElementById('exportPNG');
+        const exportSVGButton = document.getElementById('exportSVG');
 
         csvFileInput.addEventListener('change', (e) => {
             this.handleFileUpload(e.target.files[0]);
@@ -17,6 +19,14 @@ class ChartApp {
 
         loadSampleButton.addEventListener('click', () => {
             this.loadSampleData();
+        });
+
+        exportPNGButton.addEventListener('click', () => {
+            this.exportAsPNG();
+        });
+
+        exportSVGButton.addEventListener('click', () => {
+            this.exportAsSVG();
         });
     }
 
@@ -91,6 +101,45 @@ ${data.slice(0, 5).map((row, i) =>
         setTimeout(() => {
             infoElement.style.color = '';
         }, 5000);
+    }
+
+    exportAsPNG() {
+        if (!this.currentData) {
+            this.showError('請先載入數據才能匯出圖表');
+            return;
+        }
+
+        try {
+            // 將 Canvas 轉換為 PNG 並下載
+            const link = document.createElement('a');
+            link.download = 'chart-' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.png';
+            link.href = this.canvas.toDataURL('image/png');
+            link.click();
+        } catch (error) {
+            this.showError('PNG 匯出失敗: ' + error.message);
+        }
+    }
+
+    exportAsSVG() {
+        if (!this.currentData) {
+            this.showError('請先載入數據才能匯出圖表');
+            return;
+        }
+
+        try {
+            // 使用現有的 chartDrawer 來生成 SVG
+            const svgString = this.chartDrawer.generateSVG(this.currentData);
+            const blob = new Blob([svgString], { type: 'image/svg+xml' });
+
+            const link = document.createElement('a');
+            link.download = 'chart-' + new Date().toISOString().slice(0, 19).replace(/'/g, '-') + '.svg';
+            link.href = URL.createObjectURL(blob);
+            link.click();
+
+            URL.revokeObjectURL(link.href);
+        } catch (error) {
+            this.showError('SVG 匯出失敗: ' + error.message);
+        }
     }
 }
 

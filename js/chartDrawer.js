@@ -180,4 +180,90 @@ class ChartDrawer {
         ctx.textAlign = 'center';
         ctx.fillText('請上傳 CSV 檔案或載入範例資料', this.canvas.width / 2, this.canvas.height / 2);
     }
+
+    generateSVG(data) {
+        const svgElements = [];
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+
+        // SVG 開頭和白色背景
+        svgElements.push(`<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`);
+        svgElements.push(`<rect width="${width}" height="${height}" fill="white"/>`);
+
+        if (!data || data.length === 0) {
+            svgElements.push(`<text x="${width / 2}" y="${height / 2}" text-anchor="middle" font-family="Arial" font-size="18" fill="#666">請上傳 CSV 檔案或載入範例資料</text>`);
+            svgElements.push('</svg>');
+            return svgElements.join('\n');
+        }
+
+        const stats = DataValidator.getDataStatistics(data);
+
+        // 座標軸
+        svgElements.push(`<line x1="${this.padding.left}" y1="${this.chartTop + this.chartHeight}" x2="${this.padding.left + this.chartWidth}" y2="${this.chartTop + this.chartHeight}" stroke="#333" stroke-width="2"/>`);
+        svgElements.push(`<line x1="${this.padding.left}" y1="${this.chartTop}" x2="${this.padding.left}" y2="${this.chartTop + this.chartHeight}" stroke="#333" stroke-width="2"/>`);
+
+        // 網格線
+        const xStep = this.chartWidth / Math.max(1, stats.totalLength);
+        for (let i = 0; i <= stats.totalLength; i++) {
+            const x = this.padding.left + i * xStep;
+            svgElements.push(`<line x1="${x}" y1="${this.chartTop}" x2="${x}" y2="${this.chartTop + this.chartHeight}" stroke="#ddd" stroke-width="1"/>`);
+        }
+
+        const yStep = this.chartHeight / Math.max(1, stats.maxHeight);
+        const gridInterval = stats.maxHeight <= 100 ? 10 : Math.ceil(stats.maxHeight / 10);
+        for (let i = 0; i <= stats.maxHeight; i += gridInterval) {
+            const y = this.chartTop + this.chartHeight - i * yStep;
+            svgElements.push(`<line x1="${this.padding.left}" y1="${y}" x2="${this.padding.left + this.chartWidth}" y2="${y}" stroke="#ddd" stroke-width="1"/>`);
+        }
+
+        // 數據線條
+        let currentX = 0;
+        const xScale = this.chartWidth / stats.totalLength;
+        const yScale = this.chartHeight / stats.maxHeight;
+
+        for (let i = 0; i < data.length; i++) {
+            const row = data[i];
+            const startX = this.padding.left + currentX * xScale;
+            const endX = this.padding.left + (currentX + row.length) * xScale;
+            const y = this.chartTop + this.chartHeight - (row.height * yScale);
+
+            const lineWidth = Math.max(1, (row.size / 127) * 50);
+            const rectHeight = lineWidth;
+            const rectY = y - rectHeight / 2;
+            const rectWidth = endX - startX;
+
+            // 限制圓角半徑，與 Canvas roundRect 行為保持一致
+            let radius = lineWidth / 2;
+            // 圓角半徑不能超過矩形寬度和高度的一半
+            radius = Math.min(radius, rectWidth / 2, rectHeight / 2);
+
+            const color = this.getColorBySize(row.size);
+
+            svgElements.push(`<rect x="${startX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" rx="${radius}" ry="${radius}" fill="${color}"/>`);
+
+            currentX += row.length;
+        }
+
+        // 標籤
+        svgElements.push(`<text x="${width / 2}" y="25" text-anchor="middle" font-family="Arial" font-size="16" fill="#333">CSV 數據視覺化圖表</text>`);
+        svgElements.push(`<text x="${this.padding.left + this.chartWidth / 2}" y="${this.chartTop + this.chartHeight + 60}" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">累積長度</text>`);
+        svgElements.push(`<text x="20" y="${this.chartTop + this.chartHeight / 2}" text-anchor="middle" font-family="Arial" font-size="12" fill="#333" transform="rotate(-90, 20, ${this.chartTop + this.chartHeight / 2})">高度</text>`);
+
+        // 數值標籤
+        for (let i = 0; i <= stats.totalLength; i++) {
+            if (i === 0 || i === stats.totalLength || i % 5 === 0) {
+                const x = this.padding.left + i * xStep;
+                svgElements.push(`<text x="${x - 5}" y="${this.chartTop + this.chartHeight + 15}" font-family="Arial" font-size="10" fill="#333">${i}</text>`);
+            }
+        }
+
+        const labelInterval = stats.maxHeight <= 100 ? 10 : Math.ceil(stats.maxHeight / 10);
+        for (let i = 0; i <= stats.maxHeight; i += labelInterval) {
+            const y = this.chartTop + this.chartHeight - i * yStep;
+            svgElements.push(`<text x="${this.padding.left - 25}" y="${y + 3}" font-family="Arial" font-size="10" fill="#333">${i}</text>`);
+        }
+
+        svgElements.push('</svg>');
+        return svgElements.join('\n');
+    }
 }
