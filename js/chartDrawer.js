@@ -4,7 +4,9 @@ class ChartDrawer {
         this.ctx = canvas.getContext('2d');
         this.padding = { top: 50, right: 50, bottom: 80, left: 80 };
         this.chartWidth = canvas.width - this.padding.left - this.padding.right;
-        this.chartHeight = canvas.height - this.padding.top - this.padding.bottom;
+        this.chartHeight = (canvas.height - this.padding.top - this.padding.bottom) * 0.5;
+        // 調整垂直起始位置，讓壓扁的圖表垂直居中
+        this.chartTop = this.padding.top + (canvas.height - this.padding.top - this.padding.bottom - this.chartHeight) / 2;
     }
 
     clear() {
@@ -34,12 +36,12 @@ class ChartDrawer {
         ctx.beginPath();
 
         // X軸
-        ctx.moveTo(padding.left, padding.top + chartHeight);
-        ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+        ctx.moveTo(padding.left, this.chartTop + chartHeight);
+        ctx.lineTo(padding.left + chartWidth, this.chartTop + chartHeight);
 
         // Y軸
-        ctx.moveTo(padding.left, padding.top);
-        ctx.lineTo(padding.left, padding.top + chartHeight);
+        ctx.moveTo(padding.left, this.chartTop);
+        ctx.lineTo(padding.left, this.chartTop + chartHeight);
 
         ctx.stroke();
     }
@@ -55,15 +57,16 @@ class ChartDrawer {
         for (let i = 0; i <= stats.totalLength; i++) {
             const x = padding.left + i * xStep;
             ctx.beginPath();
-            ctx.moveTo(x, padding.top);
-            ctx.lineTo(x, padding.top + chartHeight);
+            ctx.moveTo(x, this.chartTop);
+            ctx.lineTo(x, this.chartTop + chartHeight);
             ctx.stroke();
         }
 
         // 水平網格線 (Y軸)
         const yStep = chartHeight / Math.max(1, stats.maxHeight);
-        for (let i = 0; i <= stats.maxHeight; i += 10) {
-            const y = padding.top + chartHeight - i * yStep;
+        const gridInterval = stats.maxHeight <= 100 ? 10 : Math.ceil(stats.maxHeight / 10);
+        for (let i = 0; i <= stats.maxHeight; i += gridInterval) {
+            const y = this.chartTop + chartHeight - i * yStep;
             ctx.beginPath();
             ctx.moveTo(padding.left, y);
             ctx.lineTo(padding.left + chartWidth, y);
@@ -82,10 +85,10 @@ class ChartDrawer {
             const row = data[i];
             const startX = padding.left + currentX * xScale;
             const endX = padding.left + (currentX + row.length) * xScale;
-            const y = padding.top + chartHeight - (row.height * yScale);
+            const y = this.chartTop + chartHeight - (row.height * yScale);
 
             // 計算線條粗細 (1-20像素) - 增加粗細差距
-            const lineWidth = Math.max(1, (row.size / 100) * 50);
+            const lineWidth = Math.max(1, (row.size / 127) * 50);
 
             // 使用 roundRect 方案 - 圓角但不突出網格
             const rectHeight = lineWidth;
@@ -120,7 +123,7 @@ class ChartDrawer {
 
     getColorBySize(size) {
         // 根據大小值產生顏色漸變
-        const ratio = size / 100;
+        const ratio = size / 127;
         const r = Math.floor(255 * ratio);
         const g = Math.floor(100 + 155 * (1 - ratio));
         const b = Math.floor(50 + 205 * (1 - ratio));
@@ -135,11 +138,11 @@ class ChartDrawer {
         ctx.textAlign = 'center';
 
         // X軸標籤
-        ctx.fillText('累積長度', padding.left + chartWidth / 2, this.canvas.height - 20);
+        ctx.fillText('累積長度', padding.left + chartWidth / 2, this.chartTop + chartHeight + 60);
 
         // Y軸標籤
         ctx.save();
-        ctx.translate(20, padding.top + chartHeight / 2);
+        ctx.translate(20, this.chartTop + chartHeight / 2);
         ctx.rotate(-Math.PI / 2);
         ctx.fillText('高度', 0, 0);
         ctx.restore();
@@ -157,14 +160,15 @@ class ChartDrawer {
         for (let i = 0; i <= stats.totalLength; i++) {
             if (i === 0 || i === stats.totalLength || i % 5 === 0) {
                 const x = padding.left + i * xStep;
-                ctx.fillText(i.toString(), x - 5, padding.top + chartHeight + 15);
+                ctx.fillText(i.toString(), x - 5, this.chartTop + chartHeight + 15);
             }
         }
 
         // Y軸數值
         const yStep = chartHeight / stats.maxHeight;
-        for (let i = 0; i <= stats.maxHeight; i += 10) {
-            const y = padding.top + chartHeight - i * yStep;
+        const labelInterval = stats.maxHeight <= 100 ? 10 : Math.ceil(stats.maxHeight / 10);
+        for (let i = 0; i <= stats.maxHeight; i += labelInterval) {
+            const y = this.chartTop + chartHeight - i * yStep;
             ctx.fillText(i.toString(), padding.left - 25, y + 3);
         }
     }

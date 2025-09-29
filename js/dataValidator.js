@@ -10,12 +10,12 @@ class DataValidator {
                 errors.push(`第 ${rowNum} 行：長度值 ${row.length} 超出範圍 (1-4)`);
             }
 
-            if (row.height < 1 || row.height > 127) {
-                errors.push(`第 ${rowNum} 行：高度值 ${row.height} 超出範圍 (1-127)`);
+            if (row.height < 1 || row.height > 100) {
+                errors.push(`第 ${rowNum} 行：高度值 ${row.height} 超出範圍 (1-100)`);
             }
 
-            if (row.size < 1 || row.size > 100) {
-                errors.push(`第 ${rowNum} 行：大小值 ${row.size} 超出範圍 (1-100)`);
+            if (row.size < 1 || row.size > 127) {
+                errors.push(`第 ${rowNum} 行：大小值 ${row.size} 超出範圍 (1-127)`);
             }
         }
 

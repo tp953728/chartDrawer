@@ -32,8 +32,8 @@ class CSVParser {
         for (let i = 0; i < 40; i++) {
             data.push({
                 length: Math.floor(Math.random() * 4) + 1,
-                height: Math.floor(Math.random() * 127) + 1,
-                size: Math.floor(Math.random() * 100) + 1
+                height: Math.floor(Math.random() * 100) + 1,
+                size: Math.floor(Math.random() * 127) + 1
             });
         }
         return data;
