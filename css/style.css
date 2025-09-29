@@ -53,6 +53,7 @@ button:hover {
 .canvas-container {
     text-align: center;
     margin-bottom: 20px;
+    overflow: auto;
 }
 
 #chart {
